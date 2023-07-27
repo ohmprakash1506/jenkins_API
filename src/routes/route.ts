@@ -1,5 +1,6 @@
 import { Router } from "express";
 import approute from './app.route'
+import jenkinsRoute from './jenkins.route'
 
 const router = Router();
 
@@ -7,6 +8,10 @@ const defaultRoutes = [
     {
         path:'/app',
         route: approute,
+    },
+    {
+        path: '/jenkinsRoute',
+        route: jenkinsRoute
     }
 ]
 

@@ -4,4 +4,6 @@ import jenkins from "../controllers/jenkins.controller";
 const router = Router();
 const jenkinsRoute = new jenkins()
 
-router.get('/jenkins/list')
+router.get('/jenkins/list', jenkinsRoute.allJobs);
+
+export default router;

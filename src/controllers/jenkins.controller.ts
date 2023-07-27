@@ -8,6 +8,7 @@ export default class jenkins {
 
     try {
       const jenkinsJobAPI = `${jenkinsUrl}/api/json`;
+      console.log(jenkinsJobAPI);
       const response: AxiosResponse = await axios.get(jenkinsJobAPI);
       res.json(response.data.json);
     } catch (error) {
