@@ -1,15 +1,14 @@
 import { Request, Response } from "express";
 import axios, { AxiosResponse } from "axios";
-import { buffer } from "stream/consumers";
+import "dotenv/config";
 
+require("dotenv").config();
 const jenkinsUrl = "http://localhost:8080";
-const username = "jenkins1506";
-const password = "ohm97877";
+const username: any = process.env.JENKINS_USER;
+const password: any = process.env.JENKINS_PASS;
 
 export default class jenkins {
   allJobs = async (req: Request, res: Response) => {
-    const { jobName } = req.params;
-
     try {
       const jenkinsJobAPI = `${jenkinsUrl}/api/json`;
       const response: AxiosResponse = await axios.get(jenkinsJobAPI, {
