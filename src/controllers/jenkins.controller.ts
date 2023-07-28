@@ -10,18 +10,50 @@ const password: any = process.env.JENKINS_PASS;
 export default class jenkins {
   allJobs = async (req: Request, res: Response) => {
     try {
-      const jenkinsJobAPI = `${jenkinsUrl}api/`;
+      const jenkinsJobAPI = `${jenkinsUrl}api/json?pretty=true`;
       const response: AxiosResponse = await axios.get(jenkinsJobAPI, {
         auth: {
           username,
           password,
         },
       });
-      console.log(response);
+      console.log(response.data.jobs);
       res.status(200).json(response.data.jobs);
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: `Error..! failed to fetch jenkins data` });
     }
   };
+
+  createJob =async (req:Request, res: Response) => {
+    try {
+        
+    } catch (error) {
+        
+    }
+  }
+
+  getJob = async(req:Request, res: Response) => {
+    try {
+        
+    } catch (error) {
+        
+    }
+  }
+
+  updateJob =async (req: Request, res: Response) => {
+    try {
+        
+    } catch (error) {
+        
+    }
+  }
+
+  deleteJob =async (req: Request, res: Response) => {
+    try {
+        
+    } catch (error) {
+        
+    }
+  }
 }
