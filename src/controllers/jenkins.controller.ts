@@ -17,43 +17,34 @@ export default class jenkins {
           password,
         },
       });
+
       console.log(response.data.jobs);
       res.status(200).json(response.data.jobs);
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      console.error(`Status:`, error.response.status);
+      console.error(`Data:`, error.response.data);
+      console.error(`Data_Error:`, error.response.config.data);
       res.status(500).json({ error: `Error..! failed to fetch jenkins data` });
     }
   };
 
-  createJob =async (req:Request, res: Response) => {
+  createJob = async (req: Request, res: Response) => {
     try {
-        
-    } catch (error) {
-        
-    }
-  }
+    } catch (error) {}
+  };
 
-  getJob = async(req:Request, res: Response) => {
+  getJob = async (req: Request, res: Response) => {
     try {
-        
-    } catch (error) {
-        
-    }
-  }
+    } catch (error) {}
+  };
 
-  updateJob =async (req: Request, res: Response) => {
+  updateJob = async (req: Request, res: Response) => {
     try {
-        
-    } catch (error) {
-        
-    }
-  }
+    } catch (error) {}
+  };
 
-  deleteJob =async (req: Request, res: Response) => {
+  deleteJob = async (req: Request, res: Response) => {
     try {
-        
-    } catch (error) {
-        
-    }
-  }
+    } catch (error) {}
+  };
 }
