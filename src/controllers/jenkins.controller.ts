@@ -23,7 +23,7 @@ export default class jenkins {
     } catch (error: any) {
       console.error(`Status:`, error.response.status);
       console.error(`Data:`, error.response.data);
-      console.error(`Data_Error:`, error.response.config.data);
+      console.error(`Data_response:`, error.response.config.data);
       res.status(500).json({ error: `Error..! failed to fetch jenkins data` });
     }
   };
