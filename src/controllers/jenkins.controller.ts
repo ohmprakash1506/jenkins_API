@@ -7,9 +7,6 @@ require("dotenv").config();
 const jenkinsUrl = process.env.JENKINS_URL;
 const username: any = process.env.JENKINS_USER;
 const password: any = process.env.JENKINS_PASS;
-const header = {
-  "Content-Type": "application/json",
-};
 
 export default class jenkins {
   allJobs = async (req: Request, res: Response) => {
@@ -34,6 +31,28 @@ export default class jenkins {
     }
   };
 
+  CSRF_token = async (req: Request, res: Response) => {
+    try {
+      const getCSRFTokenUrl = `${jenkinsUrl}crumbIssuer/api/json?pretty=true`;
+      const tokenResponse = await axios.get(getCSRFTokenUrl, {
+        auth: {
+          username,
+          password,
+        },
+      });
+
+      const csrfCrumb = tokenResponse.data.crumb;
+      console.log(csrfCrumb);
+      const csrfHeader = tokenResponse.data.crumbRequestField;
+      console.log(csrfHeader);
+
+      res.status(200).json({ message: `CSRF TOKEN GENERATED : ${csrfCrumb}`})
+    } catch (error: any) {
+      console.error(error.response);
+      res.status(500).json({error : `Error..! falied to fetch CSRF token`});
+    }
+  };
+
   createJob = async (req: Request, res: Response) => {
     try {
       const jobName = req.body.jobName;
@@ -50,13 +69,18 @@ export default class jenkins {
 
         const jobCongifJson = readData;
         console.log(`Job: `, jobCongifJson);
+        const header = {
+          "Content-Type": "application/json",
+        }
 
         const response = await axios.post(createJobUrl, jobCongifJson, {
           auth: {
             username,
             password,
           },
-          headers: header,
+          headers : {
+            "Content-Type": "application/json",
+          }
         });
 
         console.log(`JOB : ${jobName} created successfully..!`);
