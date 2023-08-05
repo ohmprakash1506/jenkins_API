@@ -27,6 +27,7 @@
     "jenkins-node-api": "^0.5.1",
     "mongodb": "^5.7.0",
     "mongoose": "^7.4.1",
-    "node-cron": "^3.0.2"
+    "node-cron": "^3.0.2",
+    "uuid": "^9.0.0"
   }
 }
