@@ -46,10 +46,10 @@ export default class jenkins {
       const csrfHeader = tokenResponse.data.crumbRequestField;
       console.log(csrfHeader);
 
-      res.status(200).json({ message: `CSRF TOKEN GENERATED : ${csrfCrumb}`})
+      res.status(200).json({ message: `CSRF TOKEN GENERATED : ${csrfCrumb}` });
     } catch (error: any) {
       console.error(error.response);
-      res.status(500).json({error : `Error..! falied to fetch CSRF token`});
+      res.status(500).json({ error: `Error..! falied to fetch CSRF token` });
     }
   };
 
@@ -71,27 +71,49 @@ export default class jenkins {
         console.log(`Job: `, jobCongifJson);
         const header = {
           "Content-Type": "application/json",
-        }
+        };
 
         const response = await axios.post(createJobUrl, jobCongifJson, {
           auth: {
             username,
             password,
           },
-          headers : {
+          headers: {
             "Content-Type": "application/json",
-          }
+          },
         });
 
         console.log(`JOB : ${jobName} created successfully..!`);
         console.log(`RESPONSE :`, response.data);
         res.status(200).json({ message: `Job Created successfully` });
       });
-
-      
     } catch (error) {
       // console.error(`Error Created:`, error);
       res.status(500).json({ error: `Error creating the job` });
+    }
+  };
+
+  buildTrigger = async (req: Request, res: Response) => {
+    try {
+      const jobName = req.body.jobName;
+      const buildUrl = `${jenkinsUrl}job/${jobName}/build`;
+
+      const response = await axios.post(buildUrl, null, {
+        auth: {
+          username,
+          password,
+        },
+        headers:{
+          'Content-Type':'application/json'
+        }
+      });
+      
+      console.log(`Job tiggered succesfully`);
+      res.status(200).json({ message: `Job tiggered succesfully` });
+    } catch (error) {
+      console.log(`Error while building the code`);
+      console.log(error);
+      res.status(500).json({ error: `Error while building the job` });
     }
   };
 
