@@ -31,7 +31,7 @@ export default class jenkins {
     }
   };
 
-  CSRF_token = async (req: Request, res: Response) => {
+  CSRF_token = async () => {
     try {
       const getCSRFTokenUrl = `${jenkinsUrl}crumbIssuer/api/json?pretty=true`;
       const tokenResponse = await axios.get(getCSRFTokenUrl, {
@@ -46,10 +46,8 @@ export default class jenkins {
       const csrfHeader = tokenResponse.data.crumbRequestField;
       console.log(csrfHeader);
 
-      res.status(200).json({ message: `CSRF TOKEN GENERATED : ${csrfCrumb}` });
     } catch (error: any) {
       console.error(error.response);
-      res.status(500).json({ error: `Error..! falied to fetch CSRF token` });
     }
   };
 
@@ -58,7 +56,7 @@ export default class jenkins {
       const jobName = req.body.jobName;
       const createJobUrl = `${jenkinsUrl}createItem?name=${jobName}`;
       const filePath =
-        "D:\\code\\Jenkins\\jenkins-api\\src\\confilgFile\\createConfig.json";
+        "/Users/ohmprakash/Desktop/programming/jenkins_API/jenkins_API/src/confilgFile/createConfig.json";
       let readData;
       fs.readFile(filePath, "utf-8", async (error, data) => {
         if (error) {
@@ -78,9 +76,9 @@ export default class jenkins {
             username,
             password,
           },
-          headers: {
-            "Content-Type": "application/json",
-          },
+          // headers: {
+          //   "Content-Type": "application/json",
+          // },
         });
 
         console.log(`JOB : ${jobName} created successfully..!`);
@@ -97,20 +95,29 @@ export default class jenkins {
     try {
       const jobName = req.body.jobName;
       const buildUrl = `${jenkinsUrl}job/${jobName}/build`;
+      const header: any = {};
 
-      const response = await axios.post(buildUrl, null, {
-        auth: {
-          username,
-          password,
-        },
-        headers:{
-          'Content-Type':'application/json'
+      // const csrfToken = await this.CSRF_token;
+      // console.log(csrfToken);
+      // header["Jenkins-crumb"] = csrfToken;
+
+      const response = await axios.post(
+        buildUrl,
+        {},
+        {
+          auth: {
+            username,
+            password,
+          },
+          headers: {
+            header,
+          },
         }
-      });
-      
+      );
+
       console.log(`Job tiggered succesfully`);
       res.status(200).json({ message: `Job tiggered succesfully` });
-    } catch (error) {
+    } catch (error: any) {
       console.log(`Error while building the code`);
       console.log(error);
       res.status(500).json({ error: `Error while building the job` });

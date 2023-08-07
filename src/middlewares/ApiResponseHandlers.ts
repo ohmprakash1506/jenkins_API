@@ -1,4 +1,4 @@
-import { ApiServiceResponse } from "../tpyeModels/APIServiceResponse";
+import { ApiServiceResponse } from "../@types/APIServiceResponse";
 
 const returnError = (statusCode: number, message: string) => {
   const response: ApiServiceResponse = {
