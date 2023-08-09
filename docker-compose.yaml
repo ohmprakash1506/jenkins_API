@@ -8,8 +8,8 @@ services:
     volumes:
       - data:/data
     environment:
-      - MONGO-INITDB-ROOT-USERNAME = rootuser
-      - MONGO-INITDB-ROOT-PASSWORD = rootpass
+       MONGO-INITDB-ROOT-USERNAME : rootuser
+       MONGO-INITDB-ROOT-PASSWORD : rootpass
   mongo-express:
     image: mongo-express
     container_name: mongo-express
@@ -17,12 +17,13 @@ services:
     ports:
       - 8081:8081
     environment:
-      - ME_CONFIG_MONGODB_ADMINUSER = rootuser
-      - ME_CONFIG_MONGODB_ADMINPASSWORD = rootpass
-      - ME_CONFIG_MONGODB_SERVER = mongodb
+       ME_CONFIG_MONGODB_ADMINUSER : rootuser
+       ME_CONFIG_MONGODB_ADMINPASSWORD : rootpass
+       ME_CONFIG_MONGODB_SERVER : mongodb
+    networks:
+      - mongodb_network
 volumes:
   data: {}
-
 networks:
-  default:
-    name: mongodb_network
+  mongodb_network:
+     driver: bridge

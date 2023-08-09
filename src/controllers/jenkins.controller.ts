@@ -31,7 +31,7 @@ export default class jenkins {
     }
   };
 
-  CSRF_token = async () => {
+  CSRF_token = async (req: Request, res: Response) => {
     try {
       const getCSRFTokenUrl = `${jenkinsUrl}crumbIssuer/api/json?pretty=true`;
       const tokenResponse = await axios.get(getCSRFTokenUrl, {
@@ -40,12 +40,12 @@ export default class jenkins {
           password,
         },
       });
-
+      const date = new Date().toISOString()
       const csrfCrumb = tokenResponse.data.crumb;
       console.log(csrfCrumb);
       const csrfHeader = tokenResponse.data.crumbRequestField;
       console.log(csrfHeader);
-
+      res.status(200).json({message :`CSFR CODE : ${csrfCrumb}, at : ${date}` })
     } catch (error: any) {
       console.error(error.response);
     }
