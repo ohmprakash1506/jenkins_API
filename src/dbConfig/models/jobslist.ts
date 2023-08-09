@@ -1,11 +1,12 @@
 import mongoose, { Schema, model } from "mongoose";
+import IJob from "../interface/joblist.interface";
 
-const jobsSchema: Schema = new Schema({
-  jobId: {
+const jobsSchema = new Schema<IJob>({
+  jobId : {
     type: String,
     required: true,
   },
-  pipelineName: {
+  pipelineName : {
     type: String,
     required: true,
   },
@@ -22,11 +23,12 @@ const jobsSchema: Schema = new Schema({
     required: true,
   },
   updatedTime: {
-    type: String,
+    type: Date,
     required: true,
-  },
+    default: Date.now()
+  }
 });
 
-const jobs = model("jobs", jobsSchema);
+const jobs = model<IJob>("jobs", jobsSchema);
 
 export default jobs;
