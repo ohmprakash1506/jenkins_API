@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import axios, { AxiosResponse } from "axios";
 import fs from "fs";
 import "dotenv/config";
+import CSRFToken from '../tokenGenerator/CSRF_Token';
 
 require("dotenv").config();
 const jenkinsUrl = process.env.JENKINS_URL;
@@ -31,25 +32,25 @@ export default class jenkins {
     }
   };
 
-  CSRF_token = async (req: Request, res: Response) => {
-    try {
-      const getCSRFTokenUrl = `${jenkinsUrl}crumbIssuer/api/json?pretty=true`;
-      const tokenResponse = await axios.get(getCSRFTokenUrl, {
-        auth: {
-          username,
-          password,
-        },
-      });
-      const date = new Date().toISOString()
-      const csrfCrumb = tokenResponse.data.crumb;
-      console.log(csrfCrumb);
-      const csrfHeader = tokenResponse.data.crumbRequestField;
-      console.log(csrfHeader);
-      res.status(200).json({message :`CSFR CODE : ${csrfCrumb}, at : ${date}` })
-    } catch (error: any) {
-      console.error(error.response);
-    }
-  };
+  // CSRF_token = async (req: Request, res: Response) => {
+  //   try {
+  //     const getCSRFTokenUrl = `${jenkinsUrl}crumbIssuer/api/json?pretty=true`;
+  //     const tokenResponse = await axios.get(getCSRFTokenUrl, {
+  //       auth: {
+  //         username,
+  //         password,
+  //       },
+  //     });
+  //     const date = new Date().toISOString()
+  //     const csrfCrumb = tokenResponse.data.crumb;
+  //     console.log(csrfCrumb);
+  //     const csrfHeader = tokenResponse.data.crumbRequestField;
+  //     console.log(csrfHeader);
+  //     res.status(200).json({message :`CSFR CODE : ${csrfCrumb}, at : ${date}` })
+  //   } catch (error: any) {
+  //     console.error(error.response);
+  //   }
+  // };
 
   createJob = async (req: Request, res: Response) => {
     try {
@@ -95,11 +96,12 @@ export default class jenkins {
     try {
       const jobName = req.body.jobName;
       const buildUrl = `${jenkinsUrl}job/${jobName}/build`;
-      const header: any = {};
 
-      // const csrfToken = await this.CSRF_token;
-      // console.log(csrfToken);
-      // header["Jenkins-crumb"] = csrfToken;
+      const CSRF_Token = await CSRFToken(jenkinsUrl, username, password)
+      const header: any = {
+        'Jenkins-Crumb' : CSRFToken,
+        'Content-Type' : 'application/json'
+      };
 
       const response = await axios.post(
         buildUrl,
