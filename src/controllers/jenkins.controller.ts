@@ -9,6 +9,28 @@ const jenkinsUrl = process.env.JENKINS_URL;
 const username: any = process.env.JENKINS_USER;
 const password: any = process.env.JENKINS_PASS;
 
+const xmlJob = `<project>
+<actions/>
+<description>My Freestyle Project</description>
+<keepDependencies>false</keepDependencies>
+<properties/>
+<scm class="hudson.scm.NullSCM"/>
+<canRoam>true</canRoam>
+<disabled>false</disabled>
+<blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+<blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+<triggers/>
+<concurrentBuild>false</concurrentBuild>
+<builders>
+  <hudson.tasks.Shell>
+    <command>echo "Hello, Jenkins!"</command>
+  </hudson.tasks.Shell>
+</builders>
+<publishers/>
+<buildWrappers/>
+</project>
+`
+
 export default class jenkins {
   allJobs = async (req: Request, res: Response) => {
     const jenkinsJobAPI = `${jenkinsUrl}api/json?pretty=true`;
@@ -32,65 +54,34 @@ export default class jenkins {
     }
   };
 
-  // CSRF_token = async (req: Request, res: Response) => {
-  //   try {
-  //     const getCSRFTokenUrl = `${jenkinsUrl}crumbIssuer/api/json?pretty=true`;
-  //     const tokenResponse = await axios.get(getCSRFTokenUrl, {
-  //       auth: {
-  //         username,
-  //         password,
-  //       },
-  //     });
-  //     const date = new Date().toISOString()
-  //     const csrfCrumb = tokenResponse.data.crumb;
-  //     console.log(csrfCrumb);
-  //     const csrfHeader = tokenResponse.data.crumbRequestField;
-  //     console.log(csrfHeader);
-  //     res.status(200).json({message :`CSFR CODE : ${csrfCrumb}, at : ${date}` })
-  //   } catch (error: any) {
-  //     console.error(error.response);
-  //   }
-  // };
-
   createJob = async (req: Request, res: Response) => {
     try {
-      const jobName = req.body.jobName;
+      const jobName = 'new Job'
+      const jobConfig = xmlJob
       const createJobUrl = `${jenkinsUrl}createItem?name=${jobName}`;
-      const filePath =
-        "/Users/ohmprakash/Desktop/programming/jenkins_API/jenkins_API/src/confilgFile/createConfig.json";
-      let readData;
-      fs.readFile(filePath, "utf-8", async (error, data) => {
-        if (error) {
-          console.error(`Error reading the file :`, error);
+
+      const { csrfCrumb, csrfHeader } = await CSRFToken(jenkinsUrl, username, password);
+
+      const response = await axios.post(createJobUrl, jobConfig, {
+        auth: {
+          username,
+          password
+        },
+        headers: {
+          [csrfHeader]: csrfCrumb,
+          'Content-Type': 'application/xml'
         }
-        console.log(`readFileData :`, data);
-        readData = JSON.parse(data);
+      })
 
-        const jobCongifJson = readData;
-        console.log(`Job: `, jobCongifJson);
-        const header = {
-          "Content-Type": "application/json",
-        };
+      console.log(`Job created successfully`);
 
-        const response = await axios.post(createJobUrl, jobCongifJson, {
-          auth: {
-            username,
-            password,
-          },
-          // headers: {
-          //   "Content-Type": "application/json",
-          // },
-        });
+      res.status(200).json({message: `Job created successfully`});
 
-        console.log(`JOB : ${jobName} created successfully..!`);
-        console.log(`RESPONSE :`, response.data);
-        res.status(200).json({ message: `Job Created successfully` });
-      });
-    } catch (error) {
-      // console.error(`Error Created:`, error);
-      res.status(500).json({ error: `Error creating the job` });
+    } catch (error : any) {
+      console.log(error);
+      res.status(500).json({error: `Error creating job`})
     }
-  };
+  }
 
   buildTrigger = async (req: Request, res: Response) => {
     try {

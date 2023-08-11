@@ -10,9 +10,11 @@ async function CSRFToken(jenkinsUrl: any, username: any, password: any) {
       },
     });
 
-    const csrfToken = response.data.crumb
-    console.log(csrfToken);
-    return csrfToken;
+    const csrfCrumb = response.data.crumb;
+    const csrfHeader = response.data.crumbRequestField
+    console.log(`CSRFCRUMB:`, csrfCrumb);
+    console.log(`CSRFHEADER`, csrfHeader);
+    return { csrfCrumb, csrfHeader };
   } catch (error:any) {
     console.error(`Erorr generating token:`, error.message)
     throw error
