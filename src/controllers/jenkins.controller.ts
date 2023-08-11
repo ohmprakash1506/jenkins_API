@@ -2,12 +2,12 @@ import { Request, Response } from "express";
 import axios, { AxiosResponse } from "axios";
 import fs from "fs";
 import "dotenv/config";
-import CSRFToken from '../tokenGenerator/CSRF_Token';
+import CSRFToken from "../tokenGenerator/CSRF_Token";
 
 require("dotenv").config();
 const jenkinsUrl = process.env.JENKINS_URL;
 const username: any = process.env.JENKINS_USER;
-const password: any = process.env.JENKINS_PASS;
+const password: any = process.env.JENKINS_API_TOKEN;
 
 const xmlJob = `<project>
 <actions/>
@@ -29,7 +29,7 @@ const xmlJob = `<project>
 <publishers/>
 <buildWrappers/>
 </project>
-`
+`;
 
 export default class jenkins {
   allJobs = async (req: Request, res: Response) => {
@@ -42,7 +42,6 @@ export default class jenkins {
           password,
         },
       });
-
       console.log(response.data.jobs);
       res.status(200).json(response.data.jobs);
     } catch (error: any) {
@@ -56,42 +55,45 @@ export default class jenkins {
 
   createJob = async (req: Request, res: Response) => {
     try {
-      const jobName = 'new Job'
-      const jobConfig = xmlJob
+      const jobName = req.body.jobName;
+      const jobConfig = xmlJob;
       const createJobUrl = `${jenkinsUrl}createItem?name=${jobName}`;
 
-      const { csrfCrumb, csrfHeader } = await CSRFToken(jenkinsUrl, username, password);
+      const { csrfCrumb, csrfHeader } = await CSRFToken(
+        jenkinsUrl,
+        username,
+        password
+      );
 
       const response = await axios.post(createJobUrl, jobConfig, {
         auth: {
           username,
-          password
+          password,
         },
         headers: {
           [csrfHeader]: csrfCrumb,
-          'Content-Type': 'application/xml'
-        }
-      })
-
+          "Content-Type": "application/xml",
+        },
+      });
+      console.log(`Response:`, response);
       console.log(`Job created successfully`);
 
-      res.status(200).json({message: `Job created successfully`});
-
-    } catch (error : any) {
+      res.status(200).json({ message: `Job created successfully` });
+    } catch (error: any) {
       console.log(error);
-      res.status(500).json({error: `Error creating job`})
+      res.status(500).json({ error: `Error creating job` });
     }
-  }
+  };
 
   buildTrigger = async (req: Request, res: Response) => {
     try {
       const jobName = req.body.jobName;
       const buildUrl = `${jenkinsUrl}job/${jobName}/build`;
 
-      const CSRF_Token = await CSRFToken(jenkinsUrl, username, password)
+      const CSRF_Token = await CSRFToken(jenkinsUrl, username, password);
       const header: any = {
-        'Jenkins-Crumb' : CSRFToken,
-        'Content-Type' : 'application/json'
+        "Jenkins-Crumb": CSRFToken,
+        "Content-Type": "application/json",
       };
 
       const response = await axios.post(
