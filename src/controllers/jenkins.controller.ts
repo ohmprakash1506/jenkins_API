@@ -2,7 +2,9 @@ import { Request, Response } from "express";
 import axios, { AxiosResponse } from "axios";
 import fs from "fs";
 import "dotenv/config";
-import CSRFToken from "../tokenGenerator/CSRF_Token";
+import CSRFToken from "../services/CSRF_Token";
+import { returnError, returnSuccess } from "../middlewares/ApiResponseHandlers";
+import HttpStatusCodes from "http-status-codes";
 
 require("dotenv").config();
 const jenkinsUrl = process.env.JENKINS_URL;
@@ -42,14 +44,19 @@ export default class jenkins {
           password,
         },
       });
-      console.log(response.data.jobs);
-      res.status(200).json(response.data.jobs);
+      const successmessage = `Jobs listed successfully`;
+      const statusCode = HttpStatusCodes.OK
+      const data = response.data.jobs;
+      res
+        .status(statusCode)
+        .json(returnSuccess(statusCode, successmessage, data));
     } catch (error: any) {
       console.error(error.response);
-      console.error(`Status:`, error.response.status);
-      console.error(`Data:`, error.response.data);
-      console.error(`Data_response:`, error.response.config.data);
-      res.status(500).json({ error: `Error..! failed to fetch jenkins data` });
+      const errorMessage = `Error..! failed to fetch jenkins data`;
+      const statusCode = HttpStatusCodes.INTERNAL_SERVER_ERROR
+      res
+        .status(statusCode)
+        .json(returnError(statusCode, errorMessage));
     }
   };
 
@@ -77,11 +84,18 @@ export default class jenkins {
       });
       console.log(`Response:`, response);
       console.log(`Job created successfully`);
-
-      res.status(200).json({ message: `Job created successfully` });
+      const message = `Job created successfully`;
+      const statusCode = HttpStatusCodes.OK
+      res
+        .status(statusCode)
+        .json(returnSuccess(statusCode, message));
     } catch (error: any) {
       console.log(error);
-      res.status(500).json({ error: `Error creating job` });
+      const errorMessage = `Error while creating job`;
+      const statusCode = HttpStatusCodes.INTERNAL_SERVER_ERROR
+      res
+        .status(statusCode)
+        .json(returnError(statusCode, errorMessage));
     }
   };
 
@@ -111,11 +125,15 @@ export default class jenkins {
       );
 
       console.log(`Job tiggered succesfully`);
-      res.status(200).json({ message: `Job tiggered succesfully` });
+      const statusCode = HttpStatusCodes.OK;
+      const message = `Job tiggered succesfully`;
+      res.status(statusCode).json(returnSuccess(statusCode, message));
     } catch (error: any) {
       console.log(`Error while building the code`);
       console.log(error);
-      res.status(500).json({ error: `Error while building the job` });
+      const errorMessage = `Error while building the job`;
+      const statusCode = HttpStatusCodes.INTERNAL_SERVER_ERROR;
+      res.status(statusCode).json(returnError(statusCode, errorMessage));
     }
   };
 

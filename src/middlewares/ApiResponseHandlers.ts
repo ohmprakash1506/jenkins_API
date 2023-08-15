@@ -1,6 +1,6 @@
 import { ApiServiceResponse } from "../@types/APIServiceResponse";
 
-const returnError = (statusCode: number, message: string) => {
+export const returnError = (statusCode: number, message: string) => {
   const response: ApiServiceResponse = {
     statusCode,
     response: {
@@ -9,9 +9,10 @@ const returnError = (statusCode: number, message: string) => {
       message,
     },
   };
+  return response;
 };
 
-const returnSuccess = (
+export const returnSuccess = (
   statusCode: number,
   message: string,
   data?: [] | object
@@ -25,9 +26,10 @@ const returnSuccess = (
       data,
     },
   };
+  return response;
 };
 
-export default {
+module.exports = {
   returnError,
   returnSuccess,
 };

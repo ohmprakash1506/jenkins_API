@@ -1,17 +1,17 @@
 import express, { Request, Response } from "express";
 import route from "./routes/route";
 import { scheduleCronJobs } from "./cornJob";
-import db from './dbConfig';
-import 'dotenv/config'
+import connection from "./dbConfig";
+import "dotenv/config";
 
-require('dotenv').config()
+require("dotenv").config();
 const app = express();
 const port = process.env.PORT_NUMBER;
 
 scheduleCronJobs();
 
-db.once('open', () => {
-  console.log(`Database connected`)
+connection.once("open", () => {
+  console.log(`Database connected`);
 });
 
 app.use(express.json());
