@@ -11,28 +11,6 @@ const jenkinsUrl = process.env.JENKINS_URL;
 const username: any = process.env.JENKINS_USER;
 const password: any = process.env.JENKINS_API_TOKEN;
 
-const xmlJob = `<project>
-<actions/>
-<description>My Freestyle Project</description>
-<keepDependencies>false</keepDependencies>
-<properties/>
-<scm class="hudson.scm.NullSCM"/>
-<canRoam>true</canRoam>
-<disabled>false</disabled>
-<blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
-<blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-<triggers/>
-<concurrentBuild>false</concurrentBuild>
-<builders>
-  <hudson.tasks.Shell>
-    <command>echo "Hello, Jenkins!"</command>
-  </hudson.tasks.Shell>
-</builders>
-<publishers/>
-<buildWrappers/>
-</project>
-`;
-
 const FreeStyleXML = `<project>
 <actions/>
 <description>My Freestyle Project</description>
@@ -52,39 +30,70 @@ const FreeStyleXML = `<project>
 </builders>
 <publishers/>
 <buildWrappers/>
-</project>` 
+</project>`;
 
-const pipeLineXML = `<flow-definition plugin="workflow-job@2.40">
-<actions/>
-<description>My Pipeline Project</description>
-<keepDependencies>false</keepDependencies>
-<properties/>
-<definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.85">
-  <script>pipeline {
-  agent any
-  stages {
-      stage('Build') {
+const pipeLineXML = `<?xml version='1.0' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.40">
+  <actions/>
+  <description>My Basic Pipeline</description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.97">
+    <script>pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout ([$class: 'GitSCM', branches: [[name : 'main']],userRemoteConfigs: [[url: 'https://gitlab.com/vm1999/gitlab-first']]])
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo "building compiling...."
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo "Test completed..."
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo "deployed the code..."
+            }
+        }
+    }
+
+        stage('SonarQube Analysis') {
           steps {
-              echo 'Building...'
+              script {
+                  withSonarQubeEnv('SonnarQube') {
+                      // Run SonarQube analysis
+                      sh 'sonar-scanner'
+                  }
+              }
           }
       }
-      stage('Test') {
-          steps {
-              echo 'Testing...'
-          }
-      }
-      stage('Deploy') {
-          steps {
-              echo 'Deploying...'
-          }
-      }
-  }
+
+    post {
+        success {
+            echo 'Pipeline succeeded!'
+        }
+        failure {
+            echo 'Pipeline failed!'
+        }
+    }
 }</script>
-  <sandbox>true</sandbox>
-</definition>
-<triggers/>
-<disabled>false</disabled>
-</flow-definition>`
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>
+`;
 
 const multiPipeLineXML = `<multibranch-project>
 <actions/>
@@ -112,7 +121,76 @@ const multiPipeLineXML = `<multibranch-project>
   </data>
 </sources>
 <configureBlocks/>
-</multibranch-project>`
+</multibranch-project>`;
+
+const sonarQube = `<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.40">
+  <actions/>
+  <description>Dynamic Git and SonarQube Pipeline</description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps@2.90">
+    <scm class="hudson.plugins.git.GitSCM" plugin="git@4.12.0">
+      <configVersion>2</configVersion>
+      <userRemoteConfigs>
+        <hudson.plugins.git.UserRemoteConfig>
+          <url>https://gitlab.com/vm1999/gitlab-first</url>
+        </hudson.plugins.git.UserRemoteConfig>
+      </userRemoteConfigs>
+      <branches>
+        <hudson.plugins.git.BranchSpec>
+          <name>*/main</name>
+        </hudson.plugins.git.BranchSpec>
+      </branches>
+      <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+      <submoduleCfg class="list"/>
+      <extensions/>
+    </scm>
+    <script>pipeline {
+      agent any
+  
+      stages {
+          stage('Checkout') {
+              steps {
+                  script {
+                      // Checkout the code from Git
+                      git url: 'https://gitlab.com/vm1999/gitlab-first', branch: 'main'
+                      echo 'checkout completed'
+                  }
+              }
+          }
+
+          stage('Test'){
+            echo 'Testing..'
+          }
+          
+          stage('Build') {
+              steps {
+                  script {
+                      // Build your application
+                      echo 'build..'
+                  }
+              }
+          }
+          
+          stage('SonarQube Analysis') {
+              steps {
+                  script {
+                      withSonarQubeEnv('SonnarQube') {
+                          // Run SonarQube analysis
+                          sh 'sonar-scanner'
+                      }
+                  }
+              }
+          }
+      }
+  }
+  </script>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>
+`;
 
 export default class jenkins {
   allJobs = async (req: Request, res: Response) => {
@@ -126,7 +204,7 @@ export default class jenkins {
         },
       });
       const successmessage = `Jobs listed successfully`;
-      const statusCode = HttpStatusCodes.OK
+      const statusCode = HttpStatusCodes.OK;
       const data = response.data.jobs;
       res
         .status(statusCode)
@@ -134,10 +212,8 @@ export default class jenkins {
     } catch (error: any) {
       console.error(error.response);
       const errorMessage = `Error..! failed to fetch jenkins data`;
-      const statusCode = HttpStatusCodes.INTERNAL_SERVER_ERROR
-      res
-        .status(statusCode)
-        .json(returnError(statusCode, errorMessage));
+      const statusCode = HttpStatusCodes.INTERNAL_SERVER_ERROR;
+      res.status(statusCode).json(returnError(statusCode, errorMessage));
     }
   };
 
@@ -147,51 +223,57 @@ export default class jenkins {
       const xmlJobFile = req.body.xmlJobFile;
 
       let jobConfig;
+      let configErrorMessage;
 
-      if (xmlJobFile === `freestylejob` ) {
-        jobConfig = FreeStyleXML ;
-      } else if ( xmlJobFile === `pipelinejob` ){
+      if (xmlJobFile === `freestylejob`) {
+        jobConfig = FreeStyleXML;
+      } else if (xmlJobFile === `pipelinejob`) {
         jobConfig = pipeLineXML;
-      } else if ( xmlJobFile === `multiplipelinejob`){
+      } else if (xmlJobFile === `multiplipelinejob`) {
         jobConfig = multiPipeLineXML;
+      } else if (xmlJobFile === `sonarqube`) {
+        jobConfig = sonarQube;
       } else {
-        res.send(`jobconfig deatils not mentioned`);
+        configErrorMessage = `jobconfig deatils not mentioned`;
       }
 
-      console.log(`jobConfig:`,jobConfig);
+      console.log(`jobConfig:`, jobConfig);
 
-      const createJobUrl = `${jenkinsUrl}createItem?name=${jobName}`;
+      if (!jobConfig) {
+        console.log(`Error:`, configErrorMessage);
+        const statusCode = HttpStatusCodes.BAD_REQUEST;
+        const message: any = configErrorMessage;
+        res.status(statusCode).json(returnError(statusCode, message));
+      } else {
+        const createJobUrl = `${jenkinsUrl}createItem?name=${jobName}`;
 
-      const { csrfCrumb, csrfHeader } = await CSRFToken(
-        jenkinsUrl,
-        username,
-        password
-      );
-
-      const response = await axios.post(createJobUrl, jobConfig, {
-        auth: {
+        const { csrfCrumb, csrfHeader } = await CSRFToken(
+          jenkinsUrl,
           username,
-          password,
-        },
-        headers: {
-          [csrfHeader]: csrfCrumb,
-          "Content-Type": "application/xml",
-        },
-      });
-      console.log(`Response:`, response);
-      console.log(`Job created successfully`);
-      const message = `Job created successfully`;
-      const statusCode = HttpStatusCodes.OK
-      res
-        .status(statusCode)
-        .json(returnSuccess(statusCode, message));
+          password
+        );
+
+        const response = await axios.post(createJobUrl, jobConfig, {
+          auth: {
+            username,
+            password,
+          },
+          headers: {
+            [csrfHeader]: csrfCrumb,
+            "Content-Type": "application/xml",
+          },
+        });
+        console.log(`Response:`, response);
+        console.log(`Job created successfully`);
+        const message = `Job created successfully`;
+        const statusCode = HttpStatusCodes.OK;
+        res.status(statusCode).json(returnSuccess(statusCode, message));
+      }
     } catch (error: any) {
       console.log(error);
       const errorMessage = `Error while creating job`;
-      const statusCode = HttpStatusCodes.INTERNAL_SERVER_ERROR
-      res
-        .status(statusCode)
-        .json(returnError(statusCode, errorMessage));
+      const statusCode = HttpStatusCodes.INTERNAL_SERVER_ERROR;
+      res.status(statusCode).json(returnError(statusCode, errorMessage));
     }
   };
 
