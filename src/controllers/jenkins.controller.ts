@@ -45,13 +45,13 @@ const pipeLineXML = `<?xml version='1.0' encoding='UTF-8'?>
     stages {
         stage('Checkout') {
             steps {
-                checkout ([$class: 'GitSCM', branches: [[name : 'main']],userRemoteConfigs: [[url: 'https://gitlab.com/vm1999/gitlab-first']]])
+                checkout ([$class: 'GitSCM', branches: [[name : 'main']],userRemoteConfigs: [[url: 'https://github.com/ohmprakash1506/jenkines_node.git']]])
             }
         }
 
         stage('Build') {
             steps {
-                echo "building compiling...."
+                echo "build completed..."
             }
         }
 
@@ -66,18 +66,23 @@ const pipeLineXML = `<?xml version='1.0' encoding='UTF-8'?>
                 echo "deployed the code..."
             }
         }
-    }
 
         stage('SonarQube Analysis') {
-          steps {
-              script {
-                  withSonarQubeEnv('SonnarQube') {
-                      // Run SonarQube analysis
-                      sh 'sonar-scanner'
-                  }
-              }
+          environment {
+            scannerHome = tool name: 'SonnarCubeScanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
           }
-      }
+          steps {
+            script {
+              withSonarQubeEnv('SonnarQube') {
+                // sh "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-3.3.0.1492-linux.zip"
+                sh "curl -o sonar-scanner.zip -L https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip"
+                echo "sonnar qube"
+              }
+            }
+          }
+         
+        }
+    }
 
     post {
         success {
