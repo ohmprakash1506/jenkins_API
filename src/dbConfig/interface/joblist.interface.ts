@@ -2,10 +2,13 @@ import { Document } from "mongodb";
 
 interface IJob extends Document {
     jobId: string;
-    pipelineName: string;
-    pipelineUrl: string;
+    jobName: string;
+    jobUrl: string;
+    jobType: string;
     status: string;
+    createdBy: string;
     updatedBy: string;
+    createdTime: Date;
     updateTime: Date;
   }
 

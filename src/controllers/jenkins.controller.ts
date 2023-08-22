@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import axios, { AxiosResponse } from "axios";
 import fs from "fs";
 import "dotenv/config";
-import CSRFToken from "../services/CSRF_Token";
+import CSRFToken from "../services/CSRFTokenService/CSRF_Token";
 import { returnError, returnSuccess } from "../middlewares/ApiResponseHandlers";
 import HttpStatusCodes from "http-status-codes";
 
@@ -100,103 +100,6 @@ const pipeLineXML = `<?xml version='1.0' encoding='UTF-8'?>
 </flow-definition>
 `;
 
-const multiPipeLineXML = `<multibranch-project>
-<actions/>
-<description>My Multibranch Pipeline Project</description>
-<displayName>My Multibranch Pipeline Project</displayName>
-<properties/>
-<sources class="jenkins.branch.MultiBranchProject$BranchSourceList" plugin="branch-api@2.9.0">
-  <data>
-    <jenkins.branch.BranchSource>
-      <source class="jenkins.plugins.git.GitSCMSource" plugin="git@4.10.0">
-        <remote>https://github.com/yourusername/yourrepository.git</remote>
-        <credentialsId>your-git-credentials-id</credentialsId>
-        <traits>
-          <jenkins.plugins.git.traits.BranchDiscoveryTrait/>
-          <jenkins.plugins.git.traits.TagDiscoveryTrait/>
-          <jenkins.plugins.git.traits.ForkPullRequestDiscoveryTrait>
-            <strategyId>1</strategyId>
-          </jenkins.plugins.git.traits.ForkPullRequestDiscoveryTrait>
-        </traits>
-      </source>
-      <strategy class="jenkins.branch.DefaultBranchPropertyStrategy">
-        <properties class="empty-list"/>
-      </strategy>
-    </jenkins.branch.BranchSource>
-  </data>
-</sources>
-<configureBlocks/>
-</multibranch-project>`;
-
-const sonarQube = `<?xml version='1.1' encoding='UTF-8'?>
-<flow-definition plugin="workflow-job@2.40">
-  <actions/>
-  <description>Dynamic Git and SonarQube Pipeline</description>
-  <keepDependencies>false</keepDependencies>
-  <properties/>
-  <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps@2.90">
-    <scm class="hudson.plugins.git.GitSCM" plugin="git@4.12.0">
-      <configVersion>2</configVersion>
-      <userRemoteConfigs>
-        <hudson.plugins.git.UserRemoteConfig>
-          <url>https://gitlab.com/vm1999/gitlab-first</url>
-        </hudson.plugins.git.UserRemoteConfig>
-      </userRemoteConfigs>
-      <branches>
-        <hudson.plugins.git.BranchSpec>
-          <name>*/main</name>
-        </hudson.plugins.git.BranchSpec>
-      </branches>
-      <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
-      <submoduleCfg class="list"/>
-      <extensions/>
-    </scm>
-    <script>pipeline {
-      agent any
-  
-      stages {
-          stage('Checkout') {
-              steps {
-                  script {
-                      // Checkout the code from Git
-                      git url: 'https://gitlab.com/vm1999/gitlab-first', branch: 'main'
-                      echo 'checkout completed'
-                  }
-              }
-          }
-
-          stage('Test'){
-            echo 'Testing..'
-          }
-          
-          stage('Build') {
-              steps {
-                  script {
-                      // Build your application
-                      echo 'build..'
-                  }
-              }
-          }
-          
-          stage('SonarQube Analysis') {
-              steps {
-                  script {
-                      withSonarQubeEnv('SonnarQube') {
-                          // Run SonarQube analysis
-                          sh 'sonar-scanner'
-                      }
-                  }
-              }
-          }
-      }
-  }
-  </script>
-  </definition>
-  <triggers/>
-  <disabled>false</disabled>
-</flow-definition>
-`;
-
 export default class jenkins {
   allJobs = async (req: Request, res: Response) => {
     const jenkinsJobAPI = `${jenkinsUrl}api/json?pretty=true`;
@@ -234,15 +137,9 @@ export default class jenkins {
         jobConfig = FreeStyleXML;
       } else if (xmlJobFile === `pipelinejob`) {
         jobConfig = pipeLineXML;
-      } else if (xmlJobFile === `multiplipelinejob`) {
-        jobConfig = multiPipeLineXML;
-      } else if (xmlJobFile === `sonarqube`) {
-        jobConfig = sonarQube;
       } else {
         configErrorMessage = `jobconfig deatils not mentioned`;
       }
-
-      console.log(`jobConfig:`, jobConfig);
 
       if (!jobConfig) {
         console.log(`Error:`, configErrorMessage);

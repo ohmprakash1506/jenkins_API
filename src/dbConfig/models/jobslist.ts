@@ -2,19 +2,28 @@ import mongoose, { Schema, model } from "mongoose";
 import IJob from "../interface/joblist.interface";
 
 const jobsSchema = new Schema<IJob>({
-  jobId : {
+  jobId: {
     type: String,
     required: true,
   },
-  pipelineName : {
+  jobNameName: {
     type: String,
     required: true,
   },
-  pipelineUrl: {
+  jobUrl: {
+    type: String,
+    required: true,
+  },
+  jobType: {
     type: String,
     required: true,
   },
   status: {
+    type: String,
+    required: true,
+    default: 'Active'
+  },
+  createdBy: {
     type: String,
     required: true,
   },
@@ -22,11 +31,16 @@ const jobsSchema = new Schema<IJob>({
     type: String,
     required: true,
   },
+  createdTime: {
+    type: Date,
+    required: true,
+    default: Date.now(),
+  },
   updatedTime: {
     type: Date,
     required: true,
-    default: Date.now()
-  }
+    default: Date.now(),
+  },
 });
 
 const jobs = model<IJob>("jobs", jobsSchema);
