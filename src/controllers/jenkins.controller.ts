@@ -5,6 +5,7 @@ import "dotenv/config";
 import CSRFToken from "../services/CSRFTokenService/CSRF_Token";
 import { returnError, returnSuccess } from "../middlewares/ApiResponseHandlers";
 import HttpStatusCodes from "http-status-codes";
+import jenkinService from "../services/dbservices/jobListService";
 
 require("dotenv").config();
 const jenkinsUrl = process.env.JENKINS_URL;
@@ -74,7 +75,6 @@ const pipeLineXML = `<?xml version='1.0' encoding='UTF-8'?>
           steps {
             script {
               withSonarQubeEnv('SonnarQube') {
-                // sh "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-3.3.0.1492-linux.zip"
                 sh "curl -o sonar-scanner.zip -L https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip"
                 echo "sonnar qube"
               }
@@ -127,8 +127,7 @@ export default class jenkins {
 
   createJob = async (req: Request, res: Response) => {
     try {
-      const jobName = req.body.jobName;
-      const xmlJobFile = req.body.xmlJobFile;
+      const {jobName, xmlJobFile} = req.body
 
       let jobConfig;
       let configErrorMessage;
@@ -166,10 +165,23 @@ export default class jenkins {
           },
         });
         console.log(`Response:`, response);
-        console.log(`Job created successfully`);
-        const message = `Job created successfully`;
-        const statusCode = HttpStatusCodes.OK;
-        res.status(statusCode).json(returnSuccess(statusCode, message));
+        if (response.statusText === "OK") {
+          let data: any = {
+            jobId: 1,
+            jobName:jobName,
+            jobUrl: createJobUrl,
+            jobType: xmlJobFile,
+            createdBy: username,
+            updatedBy: username,
+          };
+          await jenkinService.createRecord(data).then((data) => {
+            const message = `Job created successfully`;
+            const statusCode = HttpStatusCodes.OK;
+            res
+              .status(statusCode)
+              .json(returnSuccess(statusCode, message, data));
+          });
+        }
       }
     } catch (error: any) {
       console.log(error);
